@@ -18,3 +18,12 @@ local.properties
 # Eclipse project files
 .classpath
 .project
+
+# Android Source Tree
+rowboat-android/
+
+# Linux Kernel
+linux-dev/
+
+# Bootloader
+u-boot/
