@@ -69,7 +69,7 @@ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage dtbs -j4
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage-dtb.am335x-boneblack -j4
 
 # This builds the kernel modules and may take 20 minutes or longer
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- modules
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- modules -j4
 
 
 
