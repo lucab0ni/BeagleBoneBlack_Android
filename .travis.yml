@@ -1,0 +1,84 @@
+language: cpp
+
+compiler:
+ - gcc
+
+notifications:
+  recipients:
+    - luca.bonifacio@bbv.ch
+  email:
+    on_success: changed
+    on_failure: always
+
+env:
+ global:
+  - secure: pMnt4BCa57AMt701QnWuOFcDdRAU8ewWwSM2FC6Ggur/K3EvKk4OTXSxr41/x1K9hEHHMCpbe3STf4G3Cl1hn24NSmqDN98SVCSrNVsRx5IX1ng2Ggx09PvK/qaUM/zOxEQPlq8iXyT3o9ZmIgyDS5FM+e9pJk+Vg6kJgJFRXag=
+  - secure: nGHkZMWK/vTwb+FP3mo1pxX/mN08ivIQQ6b2g+RqPuMlAmPcBtR1FaQogi2/zkD8jwLlKhwPECTzEQ9yh2moaTOP6GjZzlfE0iD6zs5xQFZBhFFv+PadCRlE1xnUSFStuAXurULbNF3jyItxzNIunt4r06rqMvOlmvN0d+qRong=
+
+
+#======================================================================================================================
+# Build Lifecycle #
+#
+# By default, the worker performs the build as following:
+#
+# 1. Switch language runtime (for example, to Ruby 1.9.3 or PHP 5.4)
+# 2. Clone project repository from GitHub
+# 3. Run before_install scripts (if any)
+# 4. cd to the clone directory, run dependencies installation command (default specific to project language)
+# 5. Run before_script scripts (if any)
+# 6. Run test script command (mandatory). It must use exit code 0 on success and any code on failure.
+# 7. Run after_success/after_failure scripts (if any)
+# 8. Run after_script scripts (if any)
+#
+#======================================================================================================================
+
+
+#======================================================================================================================
+# Needs to install Qt5 before
+#
+#======================================================================================================================
+before_install:
+ # http://about.travis-ci.org/docs/user/gui-and-headless-browsers/
+ - export DISPLAY=:99.0
+ - sh -e /etc/init.d/xvfb start
+ - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x24
+ - sleep 3	# give xvfb some time to start
+ - xwininfo -root
+
+ # Print out Ubuntu version and architecture type used in Travis
+ - uname -m
+ - lsb_release -a
+
+ # Add missing repositories
+ - sudo apt-add-repository --yes ppa:canonical-qt5-edgers/qt5-proper
+ - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
+ - sudo apt-get update -qq
+
+ # Install missing dependencies
+ - sudo apt-get install -qq qtdeclarative5-dev qt5-default qtdeclarative5-qtquick2-plugin qtdeclarative5-test-plugin
+ - sudo apt-get install -qq qmlscene
+ - sudo apt-get install -qq g++-4.8
+ - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8 --slave /usr/bin/gcov gcov /usr/bin/gcov-4.8
+ - sudo update-alternatives --set gcc /usr/bin/gcc-4.8
+ - sudo pip install cpp-coveralls --use-mirrors
+
+
+#======================================================================================================================
+# By default Travis CI will run:
+# ./configure && make && make test
+# to compile your project and run the tests. It is possible to override
+# this behavior by specifying your own install: and script: commands.
+#
+#======================================================================================================================
+
+script:
+ - mkdir $HOME/screens
+ - cd NoteApp/NoteApp_Symposium
+ - DISPLAY=:99 qmlscene NoteApp_Symposium.qml &
+ - sleep 3	# give the application some time to start
+ - import -window root $HOME/screens/screenshot_$TRAVIS_BUILD_NUMBER.png
+ - cd $TRAVIS_BUILD_DIR
+
+after_success:
+ - coveralls -e /usr/include
+ - bash .utility/update-gh-pages.sh
