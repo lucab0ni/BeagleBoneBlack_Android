@@ -47,7 +47,7 @@ sudo cp scripts/files/51-android.rules /etc/udev/rules.d/
 mkdir ~/bin
 PATH=~/bin:$PATH
 curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
-chmod a+x ~/bin/repo
+chmod 755 ~/bin/repo
 
 #
 # Initializing a Repo client
