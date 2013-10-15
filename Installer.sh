@@ -27,10 +27,10 @@ sudo apt-get install git gnupg flex bison gperf build-essential zip curl libc6-d
 sudo ln -s /usr/lib/i386-linux-gnu/mesa/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
 
 #
-# Configuring USB acecss
+# Configuring USB access
 #   http://source.android.com/source/initializing.html#configuring-usb-access
 #
-sudo cp 51-android.rules /etc/udev/rules.d/
+sudo cp scripts/files/51-android.rules /etc/udev/rules.d/
 
 #
 # Setting up ccache
@@ -43,7 +43,7 @@ prebuilts/misc/linux-x86/ccache/ccache -M 50G
 
 ##############################################################
 #
-# Downloading the Source
+# Downloading the Android Source Code
 #
 ##############################################################
 
