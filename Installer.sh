@@ -45,7 +45,7 @@ sudo cp scripts/files/51-android.rules /etc/udev/rules.d/
 #   http://source.android.com/source/downloading.html#installing-repo
 #
 mkdir ~/bin
-PATH=~/bin:$PATH
+export PATH=~/bin:$PATH
 curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
 chmod 755 ~/bin/repo
 
