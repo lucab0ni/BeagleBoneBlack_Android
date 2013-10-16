@@ -58,13 +58,13 @@ mkdir ~/android_bbb
 cd ~/android_bbb
 mkdir android_source
 cd android_source
-repo init -u https://android.googlesource.com/platform/manifest -b android-4.3_r1 > repo_init.txt
+repo init -u https://android.googlesource.com/platform/manifest -b android-4.3_r1 &> repo_init.txt
 
 #
 # Downloading the Android Source Tree
 #   http://source.android.com/source/downloading.html#getting-the-files
 #
-repo sync > repo_sync.txt
+repo sync &> repo_sync.txt
 
 #
 # Verifying Git Tags
