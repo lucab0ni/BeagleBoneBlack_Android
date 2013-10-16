@@ -10,6 +10,19 @@
 #
 git config --global color.ui auto
 
+#
+# Git configuration for travis-ci
+#
+USE_GIT_CONFIG_FOR_TRAVIS=1
+if [ $# == 2 ]
+then
+	if [$1 == $USE_GIT_CONFIG_FOR_TRAVIS]
+	then
+		git config --global user.name "Travis"
+		git config --global user.email "you@example.com"
+	fi
+fi
+
 
 #
 # Install Java JDK 6
