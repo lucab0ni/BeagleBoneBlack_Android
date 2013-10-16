@@ -46,7 +46,8 @@ sudo cp scripts/files/51-android.rules /etc/udev/rules.d/
 #
 mkdir ~/bin
 PATH=~/bin:$PATH
-curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
+#curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
+curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
 chmod a+x ~/bin/repo
 
 #
