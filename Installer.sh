@@ -1,84 +1,88 @@
+#!/bin/bash
+# Any subsequent commands which fail will cause the shell script to exit immediate
+#set -e
+
 ##############################################################
 #
 # Initializing a Build Environment
 #
 ##############################################################
 
+#
+# Global variables
+#
+echo "Global variables"
+export DIR_MAIN_GITHUB=$(git rev-parse --show-toplevel)
+
 
 #
 # Git configuration
 #
+echo "Git configuration"
 git config --global color.ui auto
 
 
 #
-# Install Java JDK 6
-#   http://linuxg.net/how-to-install-oracle-java-jdk-678-on-ubuntu-13-04-12-10-12-04/
+# Environment Setup
 #
-sudo add-apt-repository -y ppa:webupd8team/java
-sudo apt-get update
-sudo apt-get install -y oracle-java6-installer
+echo $DIR_MAIN_GITHUB
+export DIR_SCRIPT=$DIR_MAIN_GITHUB/scripts
+export DIR_TOOLS=$DIR_MAIN_GITHUB/tools
+export DIR_LOG=$DIR_MAIN_GITHUB/log
 
-#
-# Install required packages
-#   http://source.android.com/source/initializing.html#installing-required-packages-ubuntu-1204
-#
-sudo apt-get install -y git gnupg flex bison gperf build-essential zip curl libc6-dev libncurses5-dev:i386 x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386 libgl1-mesa-glx:i386 libgl1-mesa-dev g++-multilib mingw32 tofrodos python-markdown libxml2-utils xsltproc zlib1g-dev:i386 python-lunch
-sudo ln -s /usr/lib/i386-linux-gnu/mesa/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
+export DIR_MAIN=$DIR_MAIN_GITHUB/android_bbb
+export DIR_UBOOT=$DIR_MAIN/u-boot
+export DIR_KERNEL=$DIR_MAIN/kernel
+export DIR_ANDROID_SOURCE=$DIR_MAIN/android_source
 
-#
-# Configuring USB access
-#   http://source.android.com/source/initializing.html#configuring-usb-access
-#
-sudo cp scripts/files/51-android.rules /etc/udev/rules.d/
+# If the main directory doesn't exists, create it
+if [ ! -d $DIR_MAIN ]
+then
+	mkdir $DIR_MAIN
+fi
 
-
-##############################################################
-#
-# Downloading the Android Source Code
-#
-##############################################################
+# If the log directory doesn't exists, create it
+if [ ! -d $DIR_LOG ]
+then
+	mkdir $DIR_LOG
+fi
 
 
 #
-# Installing repo
-#   http://source.android.com/source/downloading.html#installing-repo
+# Building Bootloader and Kernel
 #
-mkdir ~/bin
-export PATH=~/bin:$PATH
-#curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
-curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-chmod a+x ~/bin/repo
-
-#
-# Initializing a Repo client
-#   http://source.android.com/source/downloading.html#initializing-a-repo-client
-#
-mkdir ~/android_bbb
-cd ~/android_bbb
-mkdir android_source
-cd android_source
-repo init -u https://android.googlesource.com/platform/manifest -b android-4.3_r1 &> repo_init.txt
-
-#
-# Downloading the Android Source Tree
-#   http://source.android.com/source/downloading.html#getting-the-files
-#
-repo sync &> repo_sync.txt
-
-#
-# Verifying Git Tags
-#   http://source.android.com/source/downloading.html#verifying-git-tags
-#
+if [ ! -f $DIR_MAIN/kernel.build ]
+then
+	echo "Building Bootloader and Kernel"
+	sh $DIR_SCRIPT/bbb_build_kernel.sh
+else
+	echo "Skipping building of Bootloader and Kernel"
+fi
 
 
 #
-# Setting up ccache
-#   http://source.android.com/source/initializing.html#setting-up-ccache
+# Building Android Source Code
 #
-export USE_CCACHE=1
-prebuilts/misc/linux-x86/ccache/ccache -M 50G
+if [ ! -f $DIR_MAIN/android.build ]
+then
+	echo "Building Android Source Code"
+	sh $DIR_SCRIPT/bbb_build_android.sh
+else
+	echo "Skipping building of Android Source Code"
+fi
 
-source build/envsetup.sh
-lunch aosp_arm-userdebug
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j4
+
+#
+# Preparing files for formating the SD-Card
+#
+#echo "Preparing files for formating the SD-Card"
+#sh $DIR_SCRIPT/bbb_prepare_sdcard.sh
+
+
+#
+# Formating the SD-Card
+#
+#echo "Formating the SD-Card"
+#sh $DIR_SCRIPT/bbb_format_sdcard.sh
+
+
