@@ -17,6 +17,7 @@ mkdir SOURCE
 cp ../04-android/OUTPUT/root/* SOURCE/
 cp ../04-android/OUTPUT/system SOURCE/
 cp ../03-busybox/OUTPUT/busybox SOURCE/system/xbin/
+cp ../05-serialtest/OUTPUT/SerialTest.apk SOURCE/system/app/
 mkdir -p system/lib/modules
 find ../02-kernel/OUTPUT/lib/modules -name \*.ko -exec cp {} SOURCE/system/lib/modules/ \;
 cp -r ../02-kernel/OUTPUT/lib/firmware SOURCE/system/lib/
