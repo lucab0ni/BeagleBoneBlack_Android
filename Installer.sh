@@ -1,78 +1,73 @@
+#!/bin/bash
+# Any subsequent commands which fail will cause the shell script to exit immediate
+#set -e
+
 ##############################################################
 #
 # Initializing a Build Environment
 #
 ##############################################################
 
-
 #
-# Git configuration
+# Global variables
 #
-git config --global color.ui auto
-
-
-#
-# Install Java JDK 6
-#   http://linuxg.net/how-to-install-oracle-java-jdk-678-on-ubuntu-13-04-12-10-12-04/
-#
-sudo add-apt-repository ppa:webupd8team/java
-sudo apt-get update
-sudo apt-get install oracle-java6-installer
-
-#
-# Install required packages
-#   http://source.android.com/source/initializing.html#installing-required-packages-ubuntu-1204
-#
-sudo apt-get install git gnupg flex bison gperf build-essential zip curl libc6-dev libncurses5-dev:i386 x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386 libgl1-mesa-glx:i386 libgl1-mesa-dev g++-multilib mingw32 tofrodos python-markdown libxml2-utils xsltproc zlib1g-dev:i386
-sudo ln -s /usr/lib/i386-linux-gnu/mesa/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
-
-#
-# Configuring USB access
-#   http://source.android.com/source/initializing.html#configuring-usb-access
-#
-sudo cp scripts/files/51-android.rules /etc/udev/rules.d/
-
-
-##############################################################
-#
-# Downloading the Android Source Code
-#
-##############################################################
+echo "Global variables"
+export DIR_MAIN_GITHUB=$(git rev-parse --show-toplevel)
 
 
 #
-# Installing repo
-#   http://source.android.com/source/downloading.html#installing-repo
+# Environment Setup
 #
-mkdir ~/bin
-PATH=~/bin:$PATH
-curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
-chmod a+x ~/bin/repo
+echo $DIR_MAIN_GITHUB
+export DIR_SCRIPT=$DIR_MAIN_GITHUB/scripts
+export DIR_TOOLS=$DIR_MAIN_GITHUB/tools
+export DIR_LOG=$DIR_MAIN_GITHUB/log
+
+export DIR_MAIN=$DIR_MAIN_GITHUB/android_bbb
+export DIR_UBOOT=$DIR_MAIN/u-boot
+export DIR_KERNEL=$DIR_MAIN/kernel
+export DIR_ANDROID_SOURCE=$DIR_MAIN/android_source
+
+# If the main directory doesn't exists, create it
+if [ ! -d $DIR_MAIN ]
+then
+	mkdir $DIR_MAIN
+fi
+
+# If the log directory doesn't exists, create it
+if [ ! -d $DIR_LOG ]
+then
+	mkdir $DIR_LOG
+fi
+
 
 #
-# Initializing a Repo client
-#   http://source.android.com/source/downloading.html#initializing-a-repo-client
+# Building Bootloader and Kernel
 #
-mkdir -p ~/android_bbb/android
-cd ~/android_bbb/android
-repo init -u https://android.googlesource.com/platform/manifest -b android-4.2.2_r1
+if [ ! -f $DIR_MAIN/kernel.build ]
+then
+	echo "Building Bootloader and Kernel"
+	sh $DIR_SCRIPT/bbb_build_kernel.sh
+else
+	echo "Skipping building of Bootloader and Kernel"
+fi
+
 
 #
-# Downloading the Android Source Tree
-#   http://source.android.com/source/downloading.html#getting-the-files
+# Building Android Source Code
 #
-repo sync
+if [ ! -f $DIR_MAIN/android.build ]
+then
+	echo "Building Android Source Code"
+	sh $DIR_SCRIPT/bbb_build_android.sh
+else
+	echo "Skipping building of Android Source Code"
+fi
 
 #
-# Verifying Git Tags
-#   http://source.android.com/source/downloading.html#verifying-git-tags
-##
-
-# Setting up ccache
-#   http://source.android.com/source/initializing.html#setting-up-ccache
+# Preparing files for formating the SD-Card
 #
-export USE_CCACHE=1
-prebuilts/misc/linux-x86/ccache/ccache -M 50G
-
+#echo "Preparing files for formating the SD-Card"
+#sh $DIR_SCRIPT/bbb_build_sdcard.sh
 
 

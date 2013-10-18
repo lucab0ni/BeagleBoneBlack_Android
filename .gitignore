@@ -19,14 +19,8 @@ local.properties
 .classpath
 .project
 
-# Android Source Tree
-rowboat-android/
-
-# Linux Kernel
-linux-dev/
-
-# Bootloader
-u-boot/
+# Working directory
+android_bbb/
 
 # Temporary files
 *.~
