@@ -1,0 +1,213 @@
+diff --git a/BoardConfig.mk b/BoardConfig.mk
+index 23421a8..c6e7093 100644
+--- a/BoardConfig.mk
++++ b/BoardConfig.mk
+@@ -16,7 +16,7 @@
+ 
+ # These two variables are set first, so they can be overridden
+ # by BoardConfigVendor.mk
+-BOARD_USES_GENERIC_AUDIO := true
++#BOARD_USES_GENERIC_AUDIO := true
+ #USE_CAMERA_STUB := true
+ BOARD_EGL_CFG := device/ti/beagleboneblack/egl.cfg
+ 
+@@ -59,11 +59,3 @@ BOARD_FLASH_BLOCK_SIZE := 4096
+ 
+ TARGET_PROVIDES_INIT_RC := true
+ #TARGET_USERIMAGES_SPARSE_EXT_DISABLED := true
+-
+-BOARD_WPA_SUPPLICANT_DRIVER      := WEXT
+-BOARD_HOSTAPD_DRIVER             := WEXT
+-WPA_SUPPLICANT_VERSION           := VER_0_8_X
+-BOARD_WLAN_DEVICE                := wlan0
+-#BOARD_SOFTAP_DEVICE              := wl12xx_mac80211
+-#WIFI_DRIVER_MODULE_PATH          := "/system/lib/modules/wl12xx_sdio.ko"
+-#WIFI_DRIVER_MODULE_NAME          := "wl12xx_sdio"
+diff --git a/device.mk b/device.mk
+index afcb40d..08cb07c 100644
+--- a/device.mk
++++ b/device.mk
+@@ -24,7 +24,8 @@ PRODUCT_COPY_FILES := \
+ 	device/ti/beagleboneblack/ueventd.am335xevm.rc:root/ueventd.am335xevm.rc \
+ 	device/ti/beagleboneblack/media_codecs.xml:system/etc/media_codecs.xml \
+ 	device/ti/beagleboneblack/media_profiles.xml:system/etc/media_profiles.xml \
+-	device/ti/beagleboneblack/mixer_paths.xml:system/etc/mixer_paths.xml 
++	device/ti/beagleboneblack/mixer_paths.xml:system/etc/mixer_paths.xml \
++	device/ti/beagleboneblack/audio_policy.conf:system/etc/audio_policy.conf
+ 
+ #WiFi
+ PRODUCT_COPY_FILES += \
+@@ -43,7 +44,7 @@ PRODUCT_COPY_FILES += \
+ 
+ # KeyPads
+ PRODUCT_COPY_FILES += \
+-    $(LOCAL_PATH)/gpio-keys.kl:system/usr/keylayout/gpio_keys_12.kl \
++    $(LOCAL_PATH)/gpio-keys.kl:system/usr/keylayout/gpio_keys_13.kl \
+     $(LOCAL_PATH)/ti-tsc.idc:system/usr/idc/ti-tsc.idc
+ 
+ PRODUCT_PROPERTY_OVERRIDES := \
+@@ -52,8 +53,6 @@ PRODUCT_PROPERTY_OVERRIDES := \
+ # Explicitly specify dpi, otherwise the icons don't show up correctly with SGX enabled
+ PRODUCT_PROPERTY_OVERRIDES += \
+        ro.sf.lcd_density=160 \
+-       wifi.interface=wlan0 \
+-       wlan.driver.status=ok \
+        debug.egl.hw=0 \
+        video.accelerate.hw=0
+ 
+diff --git a/init.am335xevm.rc b/init.am335xevm.rc
+index fb90785..b783a7b 100644
+--- a/init.am335xevm.rc
++++ b/init.am335xevm.rc
+@@ -39,15 +39,6 @@ on post-fs-data
+ 
+     # Set indication (checked by vold) that we have finished this action
+     setprop vold.post_fs_data_done 1
+-    
+-    # wifi
+-    mkdir /data/misc/wifi/sockets 0770 wifi wifi 
+-    insmod /system/lib/modules/rfkill.ko 
+-    insmod /system/lib/modules/cfg80211.ko
+-    insmod /system/lib/modules/mac80211.ko
+-    insmod /system/lib/modules/rtlwifi.ko 
+-    insmod /system/lib/modules/rtl8192c-common.ko 
+-    insmod /system/lib/modules/rtl8192cu.ko
+ 
+ on boot
+ # Boost cpu speed to 1GHz
+@@ -62,6 +53,10 @@ on boot
+     chmod 0666 /sys/class/backlight/tps65217-bl/brightness
+ # PWM-Backlight for display brightness on LCD4 Cape
+     chmod 0666 /sys/class/backlight/backlight.10/brightness
++    chmod 0666 /sys/class/backlight/backlight.11/brightness
++
++# Allow access to serial interface
++    chmod 0666 /dev/ttyO0
+ 
+ on fs
+     mount_all /fstab.am335xevm
+@@ -75,6 +70,7 @@ on fs
+ 
+ service pvr /system/bin/sgx/rc.pvr start
+     class core
++    disabled
+     oneshot
+ 
+ service dhcpcd_eth0 /system/bin/dhcpcd -ABKL -f/system/etc/dhcpcd/dhcpcd.conf
+@@ -95,23 +91,3 @@ service sdcard /system/bin/sdcard /data/media /mnt/shell/emulated 1023 1023
+ service androidvncserver /system/bin/androidvncserver
+     disabled
+     oneshot
+-
+-# wifi
+-service wpa_supplicant /system/bin/wpa_supplicant \
+-       -iwlan0 -Dwext -c/data/misc/wifi/wpa_supplicant.conf \
+-       -e/data/misc/wifi/entropy.bin
+-       class main
+-       socket wpa_wlan0 dgram 660 wifi wifi
+-       disabled
+-       oneshot
+-
+-service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL
+-       class main
+-       disabled
+-       oneshot
+-
+-service iprenew_wlan0 /system/bin/dhcpcd -n
+-       class main
+-       disabled
+-       oneshot
+-
+diff --git a/init.rc b/init.rc
+index 6913a89..c7774c5 100644
+--- a/init.rc
++++ b/init.rc
+@@ -50,9 +50,9 @@ loglevel 3
+     symlink /system/vendor /vendor
+ 
+ # Create cgroup mount point for cpu accounting
+-    mkdir /acct
+-    mount cgroup none /acct cpuacct
+-    mkdir /acct/uid
++    #mkdir /acct
++    #mount cgroup none /acct cpuacct
++    #mkdir /acct/uid
+ 
+     mkdir /system
+     mkdir /data 0771 system system
+@@ -136,7 +136,7 @@ loglevel 3
+ 
+ on post-fs
+     # once everything is setup, no need to modify /
+-#    mount rootfs rootfs / ro remount
++    # mount rootfs rootfs / ro remount
+     # mount shared so changes propagate into child namespaces
+     mount rootfs rootfs / shared rec
+     mount tmpfs tmpfs /mnt/secure private rec
+@@ -390,10 +390,8 @@ service console /system/bin/sh
+     class core
+     console
+ #    disabled
+-#    user shell
+     user root  
+     group root
+-#    group log
+ 
+ on property:ro.debuggable=1
+     start console
+@@ -402,12 +400,12 @@ on property:ro.debuggable=1
+ service adbd /sbin/adbd
+     class core
+     socket adbd stream 660 system system
+-#    disabled
++    disabled
+     seclabel u:r:adbd:s0
+ 
+ # adbd on at boot in emulator
+-on property:ro.kernel.qemu=1
+-    start adbd
++#on property:ro.kernel.qemu=1
++#    start adbd
+ 
+ service servicemanager /system/bin/servicemanager
+     class core
+diff --git a/liblights/lights.c b/liblights/lights.c
+index 63db82a..eebdc7e 100644
+--- a/liblights/lights.c
++++ b/liblights/lights.c
+@@ -42,6 +42,8 @@ char const *const LCD3_FILE
+ 	= "/sys/class/backlight/tps65217-bl/brightness";
+ char const *const LCD4_FILE
+ 	= "/sys/class/backlight/backlight.10/brightness";
++char const *const LCD42_FILE
++	= "/sys/class/backlight/backlight.11/brightness";
+ 
+ void init_globals(void)
+ {
+@@ -93,15 +95,19 @@ set_light_backlight(struct light_device_t *dev,
+ 	/* Try to write to LCD4 Backlight node */
+ 	err = write_int(LCD4_FILE, brightness);
+ 	if (err != 0) {
+-		/* Try to write to LCD7 Backlight node */
+-		err = write_int(LCD7_FILE, brightness);
+-		/* LCD7 Backlight node not available, Try to write to LCD3 Backlight node */
++		/* Try to write to other LCD4 Backlight node */
++		err = write_int(LCD42_FILE, brightness);
+ 		if (err != 0) {
+-			err = write_int(LCD3_FILE, brightness);
++			/* Try to write to LCD7 Backlight node */
++			err = write_int(LCD7_FILE, brightness);
++			/* LCD7 Backlight node not available, Try to write to LCD3 Backlight node */
+ 			if (err != 0) {
+-				/* LCD3 and LCD7 Backlight node not available */
+-				ALOGI("write_int failed to open \n\t %s, %s and %s\n",
+-					LCD4_FILE, LCD7_FILE, LCD3_FILE); 
++				err = write_int(LCD3_FILE, brightness);
++				if (err != 0) {
++					/* LCD4, LCD3 and LCD7 Backlight node not available */
++					ALOGI("write_int failed to open \n\t %s, %s, %s and %s\n",
++						LCD4_FILE, LCD42_FILE, LCD7_FILE, LCD3_FILE); 
++				}
+ 			}
+ 		}
+ 	}
