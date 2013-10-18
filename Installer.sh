@@ -32,14 +32,6 @@ sudo ln -s /usr/lib/i386-linux-gnu/mesa/libGL.so.1 /usr/lib/i386-linux-gnu/libGL
 #
 sudo cp scripts/files/51-android.rules /etc/udev/rules.d/
 
-#
-# Setting up ccache
-#   http://source.android.com/source/initializing.html#setting-up-ccache
-#
-export USE_CCACHE=1
-prebuilts/misc/linux-x86/ccache/ccache -M 50G
-
-
 
 ##############################################################
 #
@@ -61,9 +53,9 @@ chmod a+x ~/bin/repo
 # Initializing a Repo client
 #   http://source.android.com/source/downloading.html#initializing-a-repo-client
 #
-mkdir ~/android_bbb
-cd ~/android_bbb
-repo init -u https://android.googlesource.com/platform/manifest
+mkdir -p ~/android_bbb/android
+cd ~/android_bbb/android
+repo init -u https://android.googlesource.com/platform/manifest -b android-4.2.2_r1
 
 #
 # Downloading the Android Source Tree
@@ -74,4 +66,13 @@ repo sync
 #
 # Verifying Git Tags
 #   http://source.android.com/source/downloading.html#verifying-git-tags
+##
+
+# Setting up ccache
+#   http://source.android.com/source/initializing.html#setting-up-ccache
 #
+export USE_CCACHE=1
+prebuilts/misc/linux-x86/ccache/ccache -M 50G
+
+
+
