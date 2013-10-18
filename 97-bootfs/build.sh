@@ -22,7 +22,7 @@ cp ../02-kernel/OUTPUT/uImage SOURCE/
 #
 mkdir OUTPUT
 cd SOURCE
-tar cjf ../OUTPUT/rootfs.tar.bz2 *
+tar cjf ../OUTPUT/bootfs.tar.bz2 *
 cd ..
 
 #
