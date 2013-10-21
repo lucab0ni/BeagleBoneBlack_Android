@@ -36,7 +36,7 @@ env:
 before_script:
  - git config --global user.name "Travis"
  - git config --global user.email "you@example.com"
- - ./polling.sh
+ - ./polling.sh &
 
 script:
  - ./Installer.sh
