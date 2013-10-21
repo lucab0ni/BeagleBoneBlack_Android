@@ -9,7 +9,7 @@ set -e
 ##############################################################
 
 sudo apt-get update
-sudo apt-get -f dist-upgrade
+sudo apt-get upgrade
 
 #
 # Install dependencies for u-boot and linux
