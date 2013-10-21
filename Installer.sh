@@ -19,15 +19,19 @@ for subdir in ${SUBDIRS}; do
 	export CURRENT_SUBDIR=${subdir}
 	export CURRENT_SUBDIR_PATH="${MAIN_DIR}/${subdir}"
 	
-	if [ -x ${subdir}/build.sh ]; then
+	if [ ! -x ${subdir}/build.sh ]; then
 		echo "Skipping subdir ${subdir}"
 	else
 		echo "Building subdir ${subdir}"
 
 		cd "${subdir}"
 		rm -f *.log .build_successful
-		rm -fri SOURCE
-		rm -fri OUTPUT
+		if [ -d SOURCE ]; then
+			rm -fr SOURCE
+		fi
+		if [ -d OUTPUT ]; then
+			rm -fr OUTPUT
+		fi
 		sh ./build.sh
 		if [ -f .build_successful ]; then
 			echo "  successful."
