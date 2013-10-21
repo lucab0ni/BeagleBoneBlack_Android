@@ -31,9 +31,13 @@ export PATH=$(pwd)/tools:${PATH}
 # Building uBoot
 #
 echo "Building uBoot"
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- distclean 1>>${CURRENT_SUBDIR_PATH}/build.log 2>>${CURRENT_SUBDIR_PATH}/build.log
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- am335x_evm_config 1>>${CURRENT_SUBDIR_PATH}/build.log 2>>${CURRENT_SUBDIR_PATH}/build.log
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j4 1>>${CURRENT_SUBDIR_PATH}/build.log 2>>${CURRENT_SUBDIR_PATH}/build.log
+#make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- distclean 1>>${CURRENT_SUBDIR_PATH}/build.log 2>>${CURRENT_SUBDIR_PATH}/build.log
+#make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- am335x_evm_config 1>>${CURRENT_SUBDIR_PATH}/build.log 2>>${CURRENT_SUBDIR_PATH}/build.log
+#make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j4 1>>${CURRENT_SUBDIR_PATH}/build.log 2>>${CURRENT_SUBDIR_PATH}/build.log
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- distclean
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- am335x_evm_config
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j4
 
 #
 # Copy artefacts
