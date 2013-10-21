@@ -11,6 +11,7 @@
 # build directories
 SOURCE/
 OUTPUT/
+.build_successful
 
 # logfiles
 *.log

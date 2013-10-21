@@ -24,20 +24,32 @@ index 23421a8..c6e7093 100644
 -#WIFI_DRIVER_MODULE_PATH          := "/system/lib/modules/wl12xx_sdio.ko"
 -#WIFI_DRIVER_MODULE_NAME          := "wl12xx_sdio"
 diff --git a/device.mk b/device.mk
-index afcb40d..08cb07c 100644
+index afcb40d..503e69c 100644
 --- a/device.mk
 +++ b/device.mk
-@@ -24,7 +24,8 @@ PRODUCT_COPY_FILES := \
+@@ -24,26 +24,15 @@ PRODUCT_COPY_FILES := \
  	device/ti/beagleboneblack/ueventd.am335xevm.rc:root/ueventd.am335xevm.rc \
  	device/ti/beagleboneblack/media_codecs.xml:system/etc/media_codecs.xml \
  	device/ti/beagleboneblack/media_profiles.xml:system/etc/media_profiles.xml \
 -	device/ti/beagleboneblack/mixer_paths.xml:system/etc/mixer_paths.xml 
+-
+-#WiFi
+-PRODUCT_COPY_FILES += \
+-	frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
 +	device/ti/beagleboneblack/mixer_paths.xml:system/etc/mixer_paths.xml \
-+	device/ti/beagleboneblack/audio_policy.conf:system/etc/audio_policy.conf
++	device/ti/beagleboneblack/audio_policy.conf:system/etc/audio_policy.conf \
+ 	device/ti/beagleboneblack/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
+-	frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
+-	kernel/net/rfkill/rfkill.ko:system/lib/modules/rfkill.ko \
+-	kernel/net/wireless/cfg80211.ko:system/lib/modules/cfg80211.ko \
+-	kernel/net/mac80211/mac80211.ko:system/lib/modules/mac80211.ko \
+-	kernel/drivers/net/wireless/rtlwifi/rtlwifi.ko:system/lib/modules/rtlwifi.ko \
+-	kernel/drivers/net/wireless/rtlwifi/rtl8192c/rtl8192c-common.ko:system/lib/modules/rtl8192c-common.ko \
+-	kernel/drivers/net/wireless/rtlwifi/rtl8192cu/rtl8192cu.ko:system/lib/modules/rtl8192cu.ko \
+-	device/ti/beagleboneblack/rtl8192cufw.bin:root/lib/firmware/rtlwifi/rtl8192cufw.bin \
+-	device/ti/beagleboneblack/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf 
++	frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml
  
- #WiFi
- PRODUCT_COPY_FILES += \
-@@ -43,7 +44,7 @@ PRODUCT_COPY_FILES += \
  
  # KeyPads
  PRODUCT_COPY_FILES += \
@@ -46,7 +58,7 @@ index afcb40d..08cb07c 100644
      $(LOCAL_PATH)/ti-tsc.idc:system/usr/idc/ti-tsc.idc
  
  PRODUCT_PROPERTY_OVERRIDES := \
-@@ -52,8 +53,6 @@ PRODUCT_PROPERTY_OVERRIDES := \
+@@ -52,8 +41,6 @@ PRODUCT_PROPERTY_OVERRIDES := \
  # Explicitly specify dpi, otherwise the icons don't show up correctly with SGX enabled
  PRODUCT_PROPERTY_OVERRIDES += \
         ro.sf.lcd_density=160 \
