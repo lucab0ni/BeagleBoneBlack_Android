@@ -36,6 +36,12 @@ env:
 before_script:
  - git config --global user.name "Travis"
  - git config --global user.email "you@example.com"
+ - ./polling.sh &
+ - ./setup_buildenv.sh
 
 script:
  - ./Installer.sh
+
+after_script:
+ - kill $(cat polling_pid)
+

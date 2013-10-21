@@ -39,7 +39,9 @@ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j4 1>>${CURRENT_SUBDIR_PATH}/bui
 # Copy artefacts
 #
 cd ..
-mkdir OUTPUT
+if [ ! -d OUTPUT ]; then
+	mkdir OUTPUT
+fi
 cp SOURCE/MLO SOURCE/u-boot.img OUTPUT/
 cp files/uEnv.txt OUTPUT/
 
