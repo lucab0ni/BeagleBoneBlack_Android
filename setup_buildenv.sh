@@ -8,8 +8,8 @@ set -e
 #
 ##############################################################
 
-sudo apt-get update
-sudo apt-get -f dist-upgrade
+#sudo apt-get update
+#sudo apt-get upgrade
 
 #
 # Install dependencies for u-boot and linux
@@ -26,7 +26,7 @@ sudo apt-get install -y -qq gcc-arm-linux-gnueabi
 #   http://linuxg.net/how-to-install-oracle-java-jdk-678-on-ubuntu-13-04-12-10-12-04/
 #
 echo "Install Java JDK 6"
-sudo add-apt-repository -y -qq ppa:webupd8team/java
+sudo add-apt-repository -y ppa:webupd8team/java
 sudo apt-get update
 sudo apt-get install -y -qq oracle-java6-installer
 
