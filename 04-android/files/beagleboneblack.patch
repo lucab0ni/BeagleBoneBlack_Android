@@ -24,7 +24,7 @@ index 23421a8..c6e7093 100644
 -#WIFI_DRIVER_MODULE_PATH          := "/system/lib/modules/wl12xx_sdio.ko"
 -#WIFI_DRIVER_MODULE_NAME          := "wl12xx_sdio"
 diff --git a/device.mk b/device.mk
-index afcb40d..503e69c 100644
+index afcb40d..3b00013 100644
 --- a/device.mk
 +++ b/device.mk
 @@ -24,26 +24,15 @@ PRODUCT_COPY_FILES := \
@@ -58,17 +58,21 @@ index afcb40d..503e69c 100644
      $(LOCAL_PATH)/ti-tsc.idc:system/usr/idc/ti-tsc.idc
  
  PRODUCT_PROPERTY_OVERRIDES := \
-@@ -52,8 +41,6 @@ PRODUCT_PROPERTY_OVERRIDES := \
+@@ -52,10 +41,9 @@ PRODUCT_PROPERTY_OVERRIDES := \
  # Explicitly specify dpi, otherwise the icons don't show up correctly with SGX enabled
  PRODUCT_PROPERTY_OVERRIDES += \
         ro.sf.lcd_density=160 \
 -       wifi.interface=wlan0 \
 -       wlan.driver.status=ok \
         debug.egl.hw=0 \
-        video.accelerate.hw=0
+-       video.accelerate.hw=0
++       video.accelerate.hw=0 \
++       sys.usb.config=adb
  
+ PRODUCT_PROPERTY_OVERRIDES += \
+ 	persist.sys.strictmode.visual=0 \
 diff --git a/init.am335xevm.rc b/init.am335xevm.rc
-index fb90785..b783a7b 100644
+index fb90785..6566472 100644
 --- a/init.am335xevm.rc
 +++ b/init.am335xevm.rc
 @@ -39,15 +39,6 @@ on post-fs-data
@@ -98,15 +102,25 @@ index fb90785..b783a7b 100644
  
  on fs
      mount_all /fstab.am335xevm
-@@ -75,6 +70,7 @@ on fs
+@@ -75,14 +70,14 @@ on fs
  
  service pvr /system/bin/sgx/rc.pvr start
      class core
 +    disabled
      oneshot
  
- service dhcpcd_eth0 /system/bin/dhcpcd -ABKL -f/system/etc/dhcpcd/dhcpcd.conf
-@@ -95,23 +91,3 @@ service sdcard /system/bin/sdcard /data/media /mnt/shell/emulated 1023 1023
+-service dhcpcd_eth0 /system/bin/dhcpcd -ABKL -f/system/etc/dhcpcd/dhcpcd.conf
++service dhcpcd_eth0 /system/bin/dhcpcd -AKL -f/system/etc/dhcpcd/dhcpcd.conf eth0
+     class main
+-    disabled
+     oneshot
+ 
+-service iprenew_eth0 /system/bin/dhcpcd -n
++service iprenew_eth0 /system/bin/dhcpcd -n eth0
+     class main
+     disabled
+     oneshot
+@@ -95,23 +90,3 @@ service sdcard /system/bin/sdcard /data/media /mnt/shell/emulated 1023 1023
  service androidvncserver /system/bin/androidvncserver
      disabled
      oneshot
@@ -130,23 +144,21 @@ index fb90785..b783a7b 100644
 -       disabled
 -       oneshot
 -
+diff --git a/init.am335xevm.usb.rc b/init.am335xevm.usb.rc
+index ffd68f1..184c4c8 100644
+--- a/init.am335xevm.usb.rc
++++ b/init.am335xevm.usb.rc
+@@ -1,4 +1,6 @@
+ on fs
++    insmod /system/lib/modules/libcomposite.ko
++    insmod /system/lib/modules/g_ffs.ko idVendor=0x18d1 idProduct=0x4e26 iSerialNumber=0x42
+     mkdir /dev/usb-ffs 0770 shell shell
+     mkdir /dev/usb-ffs/adb 0770 shell shell
+     mount functionfs adb /dev/usb-ffs/adb uid=2000,gid=2000
 diff --git a/init.rc b/init.rc
-index 6913a89..c7774c5 100644
+index 6913a89..4a2151e 100644
 --- a/init.rc
 +++ b/init.rc
-@@ -50,9 +50,9 @@ loglevel 3
-     symlink /system/vendor /vendor
- 
- # Create cgroup mount point for cpu accounting
--    mkdir /acct
--    mount cgroup none /acct cpuacct
--    mkdir /acct/uid
-+    #mkdir /acct
-+    #mount cgroup none /acct cpuacct
-+    #mkdir /acct/uid
- 
-     mkdir /system
-     mkdir /data 0771 system system
 @@ -136,7 +136,7 @@ loglevel 3
  
  on post-fs
@@ -156,18 +168,30 @@ index 6913a89..c7774c5 100644
      # mount shared so changes propagate into child namespaces
      mount rootfs rootfs / shared rec
      mount tmpfs tmpfs /mnt/secure private rec
-@@ -390,10 +390,8 @@ service console /system/bin/sh
+@@ -205,9 +205,6 @@ on post-fs-data
+     mkdir /data/misc/vpn 0770 system vpn
+     mkdir /data/misc/systemkeys 0700 system system
+     # give system access to wpa_supplicant.conf for backup and restore
+-    mkdir /data/misc/wifi 0770 wifi wifi
+-    chmod 0660 /data/misc/wifi/wpa_supplicant.conf
+-    mkdir /data/local 0751 root root
+ 
+     # For security reasons, /data/local/tmp should always be empty.
+     # Do not place files or directories in /data/local/tmp
+@@ -389,11 +386,9 @@ on property:selinux.reload_policy=1
+ service console /system/bin/sh
      class core
      console
- #    disabled
+-#    disabled
 -#    user shell
++    disabled
      user root  
      group root
 -#    group log
  
  on property:ro.debuggable=1
      start console
-@@ -402,12 +400,12 @@ on property:ro.debuggable=1
+@@ -402,12 +397,12 @@ on property:ro.debuggable=1
  service adbd /sbin/adbd
      class core
      socket adbd stream 660 system system
