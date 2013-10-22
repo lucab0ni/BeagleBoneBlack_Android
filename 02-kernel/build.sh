@@ -22,6 +22,13 @@ git checkout 3.8 1>>${CURRENT_SUBDIR_PATH}/git.log
 # This step may take 10 minutes or longer
 ./patch.sh 1>>${CURRENT_SUBDIR_PATH}/patch.log 2>>${CURRENT_SUBDIR_PATH}/patch.log
 
+# add Google's cgroup patch
+cd SOURCE/kernel
+git remote add google git://git.kernel.org/pub/scm/linux/kernel/git/kas/linux-android-ia.git
+git fetch google
+git cherry-pick f5b4c075a0e345ac54a7a92d8911ce2d3f607443
+cd ../..
+
 cp ../files/beaglebone_android_defconfig kernel/arch/arm/configs/
 
 # Download pre-compiled power management firmware
