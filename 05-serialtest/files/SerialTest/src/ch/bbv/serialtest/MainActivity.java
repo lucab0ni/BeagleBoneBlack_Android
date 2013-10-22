@@ -7,13 +7,18 @@ import java.io.IOException;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 
 public class MainActivity extends Activity {
 	private FileInputStream mSerialIn;
@@ -21,7 +26,6 @@ public class MainActivity extends Activity {
 	private Thread mAsyncReader;
 	private TextView mTextOutput;
 	private EditText mTextInput;
-	private Button mSendButton;
 	private final static String LOG = "ch.bbv.serialtest";
 	
 
@@ -32,6 +36,9 @@ public class MainActivity extends Activity {
         
         Process p;
         try {
+        	/* the cryptical settings parameter can be retrieved by
+        	 * reading the current state of /dev/ttyS0 via
+        	 * stty --save --file=/dev/ttyO0 */
 			p = Runtime.getRuntime().exec("/system/xbin/busybox stty -F /dev/ttyO0 500:5:1cb2:8a3b:3:1c:7f:15:4:0:1:0:11:13:1a:0:12:f:17:16:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0");
 			p.waitFor();
 			int exit = p.exitValue();
@@ -60,27 +67,28 @@ public class MainActivity extends Activity {
         
 		mTextInput = (EditText) findViewById(R.id.editText1);
 		mTextOutput = (TextView) findViewById(R.id.textView1);
-        mSendButton = (Button) findViewById(R.id.button1);
-        
+
         if(mSerialOut != null) {
-	        mSendButton.setOnClickListener(new OnClickListener() {
+        	mTextInput.setOnEditorActionListener( new OnEditorActionListener() {
 				
 				@Override
-				public void onClick(View v) {
-					try {
-						mSerialOut.write(mTextInput.getText().toString().getBytes("UTF-8"));
-						mTextInput.setText("");
-					} catch (IOException e) {
-			        	Log.e(LOG, "writing output", e);
+				public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+					if(actionId == EditorInfo.IME_ACTION_SEND) {
+						try {
+							mSerialOut.write(mTextInput.getText().toString().getBytes("UTF-8"));
+							mTextInput.setText("");
+						} catch (IOException e) {
+				        	Log.e(LOG, "writing output", e);
+						}
+						return true;
 					}
+					return false;
 				}
 			});
         } else {
-        	mSendButton.setEnabled(false);
         	mTextInput.setEnabled(false);
         }
-        
-        
+                
         if(mSerialOut != null) {
         	mAsyncReader = new Thread(new Runnable() {
 				
@@ -90,27 +98,44 @@ public class MainActivity extends Activity {
 					while(true) {
 						try {
 							int len = mSerialIn.read(buffer);
+							Log.v(LOG, "Read len: " + len);
 							if(len == -1) {
 					        	Log.w(LOG, "EOF while reading");
-					        	mTextOutput.setEnabled(false);
+					        	MainActivity.this.runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+							        	mTextOutput.setEnabled(false);
+									}
+								});
 					        	break;
 							}
 							
-							String seq = new String(buffer, 0, len, "UTF-8");
-							mTextOutput.append(seq);
+							final String seq = new String(buffer, 0, len, "UTF-8");
+				        	MainActivity.this.runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									mTextOutput.append(seq);
+								}
+							});
+
 						} catch (IOException e) {
 				        	Log.e(LOG, "IOException while reading", e);
-				        	mTextOutput.setEnabled(false);
+				        	MainActivity.this.runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+						        	mTextOutput.setEnabled(false);
+								}
+							});
 							break;
 						}
 					}
 				}
 			});
+        	mAsyncReader.start();
         } else {
         	mTextOutput.setEnabled(false);
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
